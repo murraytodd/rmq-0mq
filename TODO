@@ -1,3 +1,13 @@
+# Modernize
+
+ * Update supervision hierarchy and all Erlang-OMP and RabbitMQ conventions
+   so that the codebase is current in structure.
+ * Add -spec declarations
+ * Add eunit tests and have something so "make test" actually does something
+ * Update API to use the erlzmq2 (replace zmq: with erlzmq: + fixes)
+ * Update documentation
+ * Review the below items to see what is current and what isn't
+
 # Backlog
 
  * Supervision hierarchy -- zmq:start_link needs to be done before

@@ -14,7 +14,8 @@
 %% -- Callbacks --
 
 create_socket() ->
-    {ok, Out} = zmq:socket(upstream, [{active, false}]),
+    {ok, C} = erlzmq:context(),
+    {ok, Out} = erlzmq:socket(C, [pull, {active, false}]),
     Out.
 
 init(Options, Connection, ConsumeChannel) ->
@@ -34,7 +35,7 @@ start_listening(Channel, Sock, Params) ->
     {ok, Params}.
 
 loop(Channel, Sock, Params) ->
-    {ok, Msg} = zmq:recv(Sock),
+    {ok, Msg} = erlzmq:recv(Sock),
     ok = publish_message(Msg, Channel, Params),
     loop(Channel, Sock, Params).
 

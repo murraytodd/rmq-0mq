@@ -23,7 +23,8 @@
 %% sending, we just do it all in one go.
 
 create_socket() ->
-    {ok, In} = zmq:socket(xrep, [{active, false}]),
+    {ok, C} = erlzmq:context(),
+    {ok, In} = erlzmq:socket(C, [xrep, {active, false}]),
     In.
 
 init(Options, _Connection, ConsumeChannel) ->
@@ -70,10 +71,10 @@ response_loop(Channel, Sock, Params) ->
             #'P_basic'{correlation_id = CorrelationId} = Props,
             Path = decode_path(CorrelationId),
             lists:foreach(fun (PathElement) ->
-                                  zmq:send(Sock, PathElement, [sndmore])
+                                  erlzmq:send(Sock, PathElement, [sndmore])
                           end, Path),
-            zmq:send(Sock, <<>>, [sndmore]),
-            zmq:send(Sock, Payload),
+            erlzmq:send(Sock, <<>>, [sndmore]),
+            erlzmq:send(Sock, Payload),
             amqp_channel:cast(Channel, #'basic.ack'{ delivery_tag = Tag,
                                                      multiple = false })
     end,
@@ -83,7 +84,7 @@ request_loop(Channel, Sock, Params = #params{ req_queue = Queue,
                                               rep_queue = ReplyQueue,
                                               req_exchange = Exchange },
              Path, payload) ->
-    {ok, Data} = zmq:recv(Sock),
+    {ok, Data} = erlzmq:recv(Sock),
     CorrelationId = encode_path(Path),
     Msg = #amqp_msg{payload = Data,
                     props = #'P_basic'{
@@ -94,7 +95,7 @@ request_loop(Channel, Sock, Params = #params{ req_queue = Queue,
     amqp_channel:cast(Channel, Pub, Msg),
     request_loop(Channel, Sock, Params, [], path);
 request_loop(Channel, Sock, Params, Path, path) ->
-    {ok, Msg} = zmq:recv(Sock),
+    {ok, Msg} = erlzmq:recv(Sock),
     case Msg of
         <<>> ->
             request_loop(Channel, Sock, Params, Path, payload);

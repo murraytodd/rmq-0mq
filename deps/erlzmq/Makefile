@@ -1,4 +1,4 @@
-GIT_UPSTREAM=http://github.com/squaremo/erlzmq.git
+GIT_UPSTREAM=https://github.com/zeromq/erlzmq2.git
 
 ZMQ_PATH=/usr/local
 
@@ -32,7 +32,6 @@ $(CHECKOUT_DIR):
 
 %.ez: $(LIB_PACKAGE_DIR)
 	(cd $(LIB_PACKAGE_DIR); \
-	./bootstrap && \
 	./configure --with-zeromq=$(ZMQ_PATH) && \
 	$(MAKE) )
 	zip $(LIB_PACKAGE_NAME) $(LIB_PACKAGE_DIR)/

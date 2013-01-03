@@ -99,9 +99,9 @@ bindings_and_connections(Sock, Specs) ->
                   end, Specs).
 
 bind_or_connect({_, FD}, {bind, Address}) ->
-    zmq:bind(FD, Address);
+    erlzmq:bind(FD, Address);
 bind_or_connect({_, FD}, {connect, Address}) ->
-    zmq:connect(FD, Address).
+    erlzmq:connect(FD, Address).
 
 close_socket({_, FD}) ->
-    zmq:close(FD).
+    erlzmq:close(FD).

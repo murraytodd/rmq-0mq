@@ -14,7 +14,8 @@
 %% -- Callbacks --
 
 create_socket() ->
-    {ok, In} = zmq:socket(downstream, [{active, false}]),
+    {ok, C} = erlzmq:context(),
+    {ok, In} = erlzmq:socket(C, [push, {active, false}]),
     In.
 
 init(Options, Connection, ConsumeChannel) ->
@@ -47,7 +48,7 @@ start_listening(Channel, Sock, Params = #params{queue = Queue}) ->
 loop(Channel, Sock, Params) ->
     receive
         {#'basic.deliver'{delivery_tag = Tag}, #amqp_msg{ payload = Msg} } ->
-            ok = zmq:send(Sock, Msg),
+            ok = erlzmq:send(Sock, Msg),
             amqp_channel:cast(Channel, #'basic.ack'{delivery_tag = Tag,
                                                     multiple = false})
     end,

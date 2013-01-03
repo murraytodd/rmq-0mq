@@ -23,7 +23,8 @@
 %% sending, we just do it all in one go.
 
 create_socket() ->
-    {ok, Out} = zmq:socket(xreq, [{active, false}]),
+    {ok, C} = erlzmq:context(),
+    {ok, Out} = erlzmq:socket(C, [xreq, {active, false}]),
     Out.
 
 init(Options, Connection, _ConsumeChannel) ->
@@ -71,16 +72,16 @@ request_loop(Channel, Sock, Params) ->
                        reply_to = ReplyTo } = Props,
             case CorrelationId of
                 undefined -> no_send;
-                Id -> zmq:send(Sock, Id, [sndmore])
+                Id -> erlzmq:send(Sock, Id, [sndmore])
             end,
 	    % if there is no ReplyTo field in the amqp message don't sent it
             if 
 	       ReplyTo =/= undefined ->
-                  zmq:send(Sock, ReplyTo, [sndmore]);
+                  erlzmq:send(Sock, ReplyTo, [sndmore]);
 	       true -> ok
 	    end,
-            zmq:send(Sock, <<>>, [sndmore]),
-            zmq:send(Sock, Payload),
+            erlzmq:send(Sock, <<>>, [sndmore]),
+            erlzmq:send(Sock, Payload),
             amqp_channel:cast(Channel, #'basic.ack'{ delivery_tag = Tag,
                                                      multiple = false })
     end,
@@ -88,7 +89,7 @@ request_loop(Channel, Sock, Params) ->
 
 response_loop(Channel, Sock, Params = #params{rep_exchange = Exchange},
               Path, payload) ->
-    {ok, Data} = zmq:recv(Sock),
+    {ok, Data} = erlzmq:recv(Sock),
     [ ReplyTo | Rest ] = Path,
     CorrelationId = case Rest of
                         []   -> undefined;
@@ -103,7 +104,7 @@ response_loop(Channel, Sock, Params = #params{rep_exchange = Exchange},
     amqp_channel:cast(Channel, Pub, Msg),
     response_loop(Channel, Sock, Params, [], path);
 response_loop(Channel, Sock, Params, Path, path) ->
-    {ok, Msg} = zmq:recv(Sock),
+    {ok, Msg} = erlzmq:recv(Sock),
     case Msg of
         <<>> ->
             response_loop(Channel, Sock, Params, Path, payload);
