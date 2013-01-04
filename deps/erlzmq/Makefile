@@ -1,6 +1,6 @@
 GIT_UPSTREAM=https://github.com/zeromq/erlzmq2.git
 
-ZMQ_PATH=/usr/local
+ZMQ_PATH=/usr
 
 EBIN_DIR=ebin
 INCLUDE_DIR=include
@@ -32,8 +32,7 @@ $(CHECKOUT_DIR):
 
 %.ez: $(LIB_PACKAGE_DIR)
 	(cd $(LIB_PACKAGE_DIR); \
-	./configure --with-zeromq=$(ZMQ_PATH) && \
-	$(MAKE) )
+	./rebar compile
 	zip $(LIB_PACKAGE_NAME) $(LIB_PACKAGE_DIR)/
 	zip -r $(LIB_PACKAGE_NAME) $(LIB_PACKAGE_DIR)/$(EBIN_DIR)/
 	zip -r $(LIB_PACKAGE_NAME) $(LIB_PACKAGE_DIR)/$(PRIV_DIR)/
