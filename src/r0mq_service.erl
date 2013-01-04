@@ -40,16 +40,14 @@ start_link(ServiceArgs) ->
 %% -- Callbacks --
 
 init([{Module, SockSpec, Options}]) ->
+	rabbit_log:info("#amqp_params_direct{} resolvs to ~p~n",[#amqp_params_direct{}]),
     {ok, Connection} = amqp_connection:start(#amqp_params_direct{}),
     {ok, Channel} = amqp_connection:open_channel(Connection),
     {ok, ServiceParams} = Module:init(Options, Connection, Channel),
     Sock = create_socket(Module, create_socket, SockSpec),
     gen_server:cast(self(), start_listening),
     rabbit_log:info(
-      "0MQ ~p service starting~n" ++
-      "  listening on: ~p~n" ++
-      "  options:~n" ++
-      "    ~p",
+      "0MQ ~p service starting; listening on: ~p with options:~p~n",
       [Module, SockSpec, Options]),
     {ok, #state{ connection = Connection,
                  channel = Channel,
@@ -88,20 +86,23 @@ code_change(_, State, _) ->
 
 %% -- Internal --
 
-create_socket(Module, Function, Specs) ->
-    Sock = Module:Function(),
-    bindings_and_connections(Sock, Specs),
-    Sock.
+%% For each item in Specs, generate the appropriate socket and then either
+%% bind or connect the socket to the correct address.
 
-bindings_and_connections(Sock, Specs) ->
+create_socket(Module, Function, Specs) ->
+    ZMQSock = Module:Function(),
+    bindings_and_connections(ZMQSock, Specs),
+    ZMQSock.
+
+bindings_and_connections(ZMQSock, Specs) ->
     lists:foreach(fun (Spec) ->
-                          ok = bind_or_connect(Sock, Spec)
+                          ok = bind_or_connect(ZMQSock, Spec)
                   end, Specs).
 
-bind_or_connect({_, FD}, {bind, Address}) ->
-    erlzmq:bind(FD, Address);
-bind_or_connect({_, FD}, {connect, Address}) ->
-    erlzmq:connect(FD, Address).
+bind_or_connect(ZMQSock, {bind, Address}) ->
+    erlzmq:bind(ZMQSock, Address);
+bind_or_connect(ZMQSock, {connect, Address}) ->
+    erlzmq:connect(ZMQSock, Address).
 
-close_socket({_, FD}) ->
-    erlzmq:close(FD).
+close_socket(ZMQSock) ->
+    erlzmq:close(ZMQSock).

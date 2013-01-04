@@ -1,7 +1,7 @@
 # &Oslash;MQ plugin for RabbitMQ
 
-This RabbitMQ plugin uses the Erlang "Erlzmq" &Oslash; bindings to
-bridge &Oslash; and AMQP traffic. Earlier versions used the original
+This RabbitMQ plugin uses the Erlang "Erlzmq" &Oslash;mq bindings to
+bridge &Oslash;mq and AMQP traffic. Earlier versions used the original
 (and now deprecated) Erlzmq bindings, but current versions use the
 newer NIF-based Erlzmq2 bindings.
 
